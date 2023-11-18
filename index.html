@@ -43,6 +43,22 @@
         cursor: pointer;
         user-select: none;
       }
+      .outputBox {
+        position: relative;
+      }
+      .outputHover {
+        position: absolute;
+        top: -10px;
+        bottom: -10px;
+        left: -10px;
+        right: -10px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 60px;
+        user-select: none;
+      }
     </style>
   </head>
   <body>
@@ -55,13 +71,18 @@
     <label for="lang_jp" class="label">日文</label>
     <textarea id="input" rows="20" class="textarea"></textarea>
     <div class="trans"><button class="transBtn" id="transBtn">轉換</button></div>
-    <textarea id="output" rows="20" class="textarea" disabled></textarea>
+    <div class="outputBox">
+      <textarea id="output" rows="20" class="textarea"></textarea>
+      <div class="outputHover" id="outputHover"></div>
+    </div>
 
     <script>
       const transBtn = document.getElementById("transBtn"); // 取得轉換按鈕
       const input = document.getElementById("input"); // 取得輸入框
       const output = document.getElementById("output"); // 取得輸出框
+      const outputHover = document.getElementById("outputHover"); // 取得輸出框複製按鈕
 
+      //#region 資料轉換
       const regex = /\/ac "(.*?)" <wait.\d+>/;
       const transMarco = () => {
         const lang = document.querySelector('input[name="lang"]:checked').value;
@@ -83,6 +104,17 @@
       transBtn.addEventListener("click", () =>
         twCSV && jpCSV && cnCSV ? transMarco() : alert("請等待資料載入完成"),
       );
+      //#endregion
+
+      //#region 複製轉換結果
+      const copyOutput = () => {
+        output.select();
+        output.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+        alert("已複製轉換結果");
+      };
+      outputHover.addEventListener("click", () => copyOutput());
+      //#endregion
 
       let [twCSV, jpCSV, cnCSV] = [null, null, null];
       fetch("./tw.csv")
