@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FFXIV-Marco-Translate</title>
+
+    <style>
+      body {
+        max-width: 500px;
+        width: 100%;
+        margin: 0 auto;
+      }
+      .label {
+        cursor: pointer;
+      }
+      .textarea {
+        width: 100%;
+        resize: none;
+      }
+      .trans {
+        position: relative;
+        border: 1px solid #000;
+        margin: 30px 0;
+      }
+      .trans::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 20px 45px;
+        background: #fff;
+      }
+      .transBtn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 10px 20px;
+        border: none;
+        background: #f99;
+        cursor: pointer;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>FFXIV-Marco-Translate</h2>
+    <small>TW 6.51.1114</small>
+    <p>※ 抓取格式為 /ac "□□□□□" &lt;wait.○ &gt; 的資料</p>
+    <input type="radio" name="lang" id="lang_cn" value="cn" checked />
+    <label for="lang_cn" class="label">簡中</label>
+    <input type="radio" name="lang" id="lang_jp" value="jp" />
+    <label for="lang_jp" class="label">日文</label>
+    <textarea id="input" rows="20" class="textarea"></textarea>
+    <div class="trans"><button class="transBtn" id="transBtn">轉換</button></div>
+    <textarea id="output" rows="20" class="textarea" disabled></textarea>
+
+    <script>
+      const transBtn = document.getElementById("transBtn"); // 取得轉換按鈕
+      const input = document.getElementById("input"); // 取得輸入框
+      const output = document.getElementById("output"); // 取得輸出框
+
+      const regex = /\/ac "(.*?)" <wait.\d+>/;
+      const transMarco = () => {
+        const lang = document.querySelector('input[name="lang"]:checked').value;
+        const inputLines = input.value.split("\n");
+        const outputLines = inputLines.map((line) => {
+          const keywords = regex.exec(line);
+          if (!keywords) return line;
+          return line.replace(keywords[1], getTWName(keywords[1], lang));
+        });
+        output.value = outputLines.join("\n").replace("/echo 宏", "/echo 巨集");
+      };
+      const getTWName = (name, lang) => {
+        const csv = lang === "cn" ? cnCSV : jpCSV;
+        const index = csv.split("\n").findIndex((line) => line.includes(name));
+        if (index < 0) return name;
+        return twCSV.split("\n")[index].split('","')[1];
+      };
+
+      transBtn.addEventListener("click", () =>
+        twCSV && jpCSV && cnCSV ? transMarco() : alert("請等待資料載入完成"),
+      );
+
+      let [twCSV, jpCSV, cnCSV] = [null, null, null];
+      fetch("./tw.csv")
+        .then((res) => res.text())
+        .then((text) => (twCSV = text));
+      fetch("./jp.csv")
+        .then((res) => res.text())
+        .then((text) => (jpCSV = text));
+      fetch("./cn.csv")
+        .then((res) => res.text())
+        .then((text) => (cnCSV = text));
+    </script>
+  </body>
+</html>
