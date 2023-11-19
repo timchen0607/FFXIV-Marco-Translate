@@ -85,6 +85,7 @@
       //#region 資料轉換
       const regex = /\/ac "(.*?)" <wait.\d+>/;
       const transMarco = () => {
+        output.value = "";
         const lang = document.querySelector('input[name="lang"]:checked').value;
         const inputLines = input.value.split("\n");
         const outputLines = inputLines.map((line) => {
@@ -96,9 +97,11 @@
       };
       const getTWName = (name, lang) => {
         const csv = lang === "cn" ? cnCSV : jpCSV;
-        const index = csv.split("\n").findIndex((line) => line.includes(name));
-        if (index < 0) return name;
-        return twCSV.split("\n")[index].split('","')[1];
+        const source = csv.split("\n").find((line) => line.includes(`"${name}"`));
+        const index = source.split(",")[0];
+        if (!index) return name;
+        const target = twCSV.split("\n").find((line) => line.indexOf(index) === 0);
+        return target.split('","')[1];
       };
 
       transBtn.addEventListener("click", () =>
@@ -116,16 +119,25 @@
       outputHover.addEventListener("click", () => copyOutput());
       //#endregion
 
-      let [twCSV, jpCSV, cnCSV] = [null, null, null];
+      let [twCSV, jpCSV, cnCSV] = ["", "", ""];
       fetch("./tw.csv")
         .then((res) => res.text())
-        .then((text) => (twCSV = text));
+        .then((text) => (twCSV += text));
       fetch("./jp.csv")
         .then((res) => res.text())
-        .then((text) => (jpCSV = text));
+        .then((text) => (jpCSV += text));
       fetch("./cn.csv")
         .then((res) => res.text())
-        .then((text) => (cnCSV = text));
+        .then((text) => (cnCSV += text));
+      fetch("./tw2.csv")
+        .then((res) => res.text())
+        .then((text) => (twCSV += text));
+      fetch("./jp2.csv")
+        .then((res) => res.text())
+        .then((text) => (jpCSV += text));
+      fetch("./cn2.csv")
+        .then((res) => res.text())
+        .then((text) => (cnCSV += text));
     </script>
   </body>
 </html>
